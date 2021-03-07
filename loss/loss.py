@@ -9,7 +9,7 @@ Networks losses for adversarial generator GAN is as follows:
 4. norm (hinge) loss
 """
 
-class gan_loss(nn.Module):
+class Gan_loss(nn.Module):
     """
     Discriminative loss + generative loss
     Assumes label 1 is for real and 0 for fake
@@ -27,7 +27,7 @@ class gan_loss(nn.Module):
             return loss.sum()
         return loss
 
-class adv_loss(nn.Module):
+class Adv_loss(nn.Module):
     """
     Adversarial loss
     """
@@ -36,13 +36,13 @@ class adv_loss(nn.Module):
 
     def forward(self, input, target):
         """
-        input: model prediction
-        target: target OHE vector of class
+        input: model prediction (N, C)
+        target: target OHE vector of class (N)
         """
-        return F.cross_entropy(intput, target, reduction = self.reduction)
+        return F.cross_entropy(input, target, reduction = self.reduction)
     
 
-class hinge_loss(nn.Module):
+class Hinge_loss(nn.Module):
     def __init__(c, reduction: str = 'mean') -> None:
         super(hinge_loss).__init__()
         self.c = c
@@ -54,7 +54,7 @@ class hinge_loss(nn.Module):
         return torch.max(0, torch.norm(input) - c)
 
 
-class combined_loss(nn.Module):
+class Combined_loss(nn.Module):
     def __init__(alpha = 1, beta = 1, c = 1) -> None:
         self.alpha = alpha
         self.beta = beta
