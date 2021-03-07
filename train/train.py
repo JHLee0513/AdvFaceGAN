@@ -4,6 +4,7 @@ import torch.nn.Functional as F
 from models import Generative
 from loss import Combined_loss
 
+
 """
 g_M - Generative model
 arcface - nn for arcface
@@ -12,6 +13,10 @@ fool_class - number for class trying to fool
 def train_one_epoch(train_set, g_m, arcface, fool_class, f_loss):
     arcface.train(False) # freeze network
     opt = torch.optim.SGD(g_m.parameters(), lr=.01, momentum=.9)
+
+    adab
+
+
     for batch in train_set:
         g_m.zero_grad()
         Gx = g_m.forward(batch) # generate adv filter
