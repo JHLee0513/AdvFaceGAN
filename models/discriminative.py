@@ -1,11 +1,11 @@
 # FIX THIS: rename however you want
-from generative import Down
+from models.generative import Down
 import torch
 import torch.nn as nn
 
 class Discriminative(nn.Module):
     def __init__(self, image_size, rgb = True):
-        super(Generative, self).__init__()
+        super(Discriminative, self).__init__()
         if (image_size % 8 != 0):
             raise Exception("Image must be a factor of 8")
         # in_channels, num filters, kernal_size
@@ -18,11 +18,11 @@ class Discriminative(nn.Module):
         n = image_size/4 #each image is 1 feature at this point dependent on image_size
 
         # size x / 2
-        if (rgb) {
+        if (rgb):
             self.d1 = Down(3, filters1) # rgb channels 
-        } else {
+        else:
             self.d1 = Down(1, filters1) # rgb channels
-        }
+        
 
         # size x / 4
         self.d2 = Down(filters1, filters2)

@@ -1,6 +1,6 @@
 # import torch
 import torch.nn as nn
-import torch.nn.Functional as F
+import torch.nn.functional as F
 
 """
 Networks losses for adversarial generator GAN is as follows:
@@ -14,37 +14,32 @@ class Gan_loss(nn.Module):
     Discriminative loss + generative loss
     Assumes label 1 is for real and 0 for fake
     """
-    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
-        super(gan_loss, self).__init__()
+    def __init__(self):
+        super(Gan_loss, self).__init__()
 
-    def forward(self, input_real: Tensor, input_fake: Tensor, ) -> Tensor:
+    def forward(self, input_real, input_fake):
         dis_loss = torch.log(torch.sigmoid(input_real))
         gen_loss = torch.log(1 - torch.sigmoid(input_fake))
         loss = dis_loss + gen_loss
-        if self.reduce == 'mean':
-            return loss.mean()
-        elif self.reduce == "sum":
-            return loss.sum()
-        return loss
+        return loss.mean()
 
 class Adv_loss(nn.Module):
     """
     Adversarial loss
     """
-    def __init__(self, size_average=None, reduce=None, reduction : str = 'mean') -> None:
-        super(adv_loss, self).__init__()
+    def __init__(self):
+        super(Adv_loss, self).__init__()
 
     def forward(self, input, target):
         """
         input: model prediction (N, C)
         target: target OHE vector of class (N)
         """
-        return F.cross_entropy(input, target, reduction = self.reduction)
-    
+        return F.cross_entropy(input, target, reduction = "mean")
 
 class Hinge_loss(nn.Module):
-    def __init__(c, reduction: str = 'mean') -> None:
-        super(hinge_loss).__init__()
+    def __init__(self, c):
+        super(Hinge_loss, self).__init__()
         self.c = c
 
     def forward(self, input):
@@ -53,14 +48,14 @@ class Hinge_loss(nn.Module):
         """
         return torch.max(0, torch.norm(input) - c)
 
-
 class Combined_loss(nn.Module):
-    def __init__(alpha = 1, beta = 1, c = 1) -> None:
+    def __init__(self, alpha = 1, beta = 1, c = 1):
+        super(Combined_loss, self).__init__()
         self.alpha = alpha
         self.beta = beta
-        self.gan_loss = gan_loss()
-        self.adv_loss = adv_loss()
-        self.hinge_loss = hinge_loss(c)
+        self.gan_loss = Gan_loss()
+        self.adv_loss = Adv_loss()
+        self.hinge_loss = Hinge_loss(c)
     
     def forward(self, y, yp, Gx, t_pred, t_gt):
         """

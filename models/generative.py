@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.Functional as F
+import torch.nn.functional as F
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
@@ -26,7 +26,7 @@ class Down(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
-            DoubleConv(in_channels, out_channels)
+            DoubleConv(in_channels, out_channels),
             nn.MaxPool2d(2),
         )
 
@@ -80,11 +80,10 @@ class Generative(nn.Module):
         n = image_size/4 #each image is 1 feature at this point dependent on image_size
 
         # size x / 2
-        if (rgb) {
+        if rgb:
             self.d1 = Down(3, filters1) # rgb channels 
-        } else {
+        else:
             self.d1 = Down(1, filters1) # rgb channels
-        }
 
         # size x / 4
         self.d2 = Down(filters1, filters2)
@@ -95,11 +94,11 @@ class Generative(nn.Module):
         bilinear = True
         self.u1 = Up(filters3 + filters2, filters2, bilinear=bilinear)
         self.u2 = Up(filters2 + filters1, filters1, bilinear=bilinear)
-        if (rgb) {
+        if rgb:
             self.u3 = Up(filters1, 3, bilinear=bilinear) # rgb output
-        } else {
+        else:
             self.u3 = Up(filters1, 1, bilinear=bilinear) # grayscale output
-        }
+        
 
     def forward(self, x):
         # size x / 2
