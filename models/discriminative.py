@@ -46,6 +46,7 @@ class Discriminative(nn.Module):
 
         y = x3.view(y.shape[0], y.shape[1], -1) # put in linear columns
         y = self.L(y)
+        y = nn.ReLU(y)
         y = self.L2(y)
         return y
 
