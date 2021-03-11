@@ -59,6 +59,7 @@ class FaceModel(nn.Module):
 
         self.embeddings = torch.load(os.path.join(facebank_path,'facebank.pth'))
         self.names = np.load(os.path.join(facebank_path, 'names.npy'))
+        # print(self.names[52901])
         self.threshold = 1.5
 
     def forward(self, x): #, label):
@@ -90,7 +91,7 @@ class FaceModel(nn.Module):
         dist = torch.sum(torch.pow(diff, 2), dim=1)
         minimum, min_idx = torch.min(dist, dim=1)
         min_idx[minimum > self.threshold] = -1 # if no match, set idx to -1
-        return min_idx, minimum    
+        return min_idx, minimum
 
 def step(model, batch, criterion):
     predictions = model(batch)
@@ -188,7 +189,8 @@ def main():
 
     for epoch in range(EPOCHS):
         train_loss = train([g_m, d_m, ac], optimizer, train_loader, FOOL_CLASS, criterion)
-        print("\n Avg. Train Loss: %3f\n" % np.array(train_loss))
+        
+        print("\n Avg. Train Loss: %3f\n" % np.array(train_loss).mean())
 
         valid_loss = validate([g_m, d_m, ac], valid_loader, FOOL_CLASS)
         scheduler.step()
@@ -199,10 +201,13 @@ def main():
 if __name__ == "__main__":
 
     # test on dummy data
-    # dummy = cv2.imread("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/InsightFace_Pytorch/data/facebank/0/1.jpg")
+    # dummy = cv2.imread("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/InsightFace_Pytorch/data/facebank/5/343.jpg")
     # dummy = cv2.cvtColor(dummy, cv2.COLOR_BGR2RGB)
     # dummy = cv2.resize(dummy, (INPUT_SIZE, INPUT_SIZE))
+    # ac = FaceModel().to(device)
+    # ac.eval()
     # target, value = ac.infer([dummy])
+    # print(target, value)
 
     try:
         main()
