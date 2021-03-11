@@ -49,8 +49,8 @@ class Up(nn.Module):
     def forward(self, x, h):
         if (len(x.shape) != 4):
             raise Exception("Input tensor is incorrect shape")
-        if (x.shape[2] != h.shape[2] or x.shape[3] != h.shape[3]):
-            raise Exception("shapes do not match for x and h!!!")
+        # if (x.shape[2] != h.shape[2] or x.shape[3] != h.shape[3]):
+        #     raise Exception("shapes do not match for x and h!!!")
 
         x = self.up(x)
         # input is CHW

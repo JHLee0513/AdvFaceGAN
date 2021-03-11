@@ -2,6 +2,7 @@
 from models.generative import Down
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class Discriminative(nn.Module):
     def __init__(self, image_size, rgb = True):
@@ -30,8 +31,10 @@ class Discriminative(nn.Module):
         # size x / 8
         self.d3 = Down(filters2, filters3)
 
+        self.gap = torch.nn.AdaptiveAvgPool2d((1,1))
+
         hidden = 100
-        self.L = nn.Linear(filters3*filters3, hidden)
+        self.L = nn.Linear(filters3, hidden)
         self.L2 = nn.Linear(hidden, 1)
 
 
@@ -44,9 +47,12 @@ class Discriminative(nn.Module):
         # size x / 8
         x3 = self.d3(x2)
 
-        y = x3.view(y.shape[0], y.shape[1], -1) # put in linear columns
-        y = self.L(y)
-        y = nn.ReLU(y)
+        flatten = self.gap(x3)
+        bs, c, h, w = flatten.shape
+        flatten = flatten.reshape((bs, -1))
+        # y = x3.view(y.shape[0], y.shape[1], -1) # put in linear columns
+        y = self.L(flatten)
+        y = F.relu(y)
         y = self.L2(y)
         return y
 
