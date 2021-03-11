@@ -26,7 +26,7 @@ import numpy as np
 Training script for AdvFaceGAN
 """
 
-EPOCHS = 10
+EPOCHS = 75
 BATCHSIZE = 24
 INPUT_SIZE = 112
 # TARGET = 4 # target to fool classifier as
@@ -150,7 +150,8 @@ def train(models, optimizer, train_loader, fool_class, criterion):
         # clip_grad_norm_(generator.parameters(), 1, norm_type=2.0)
         optimizer.step()
 
-    print("Avg. Train Loss: %3f" % np.array(train_loss).mean())
+    return np.array(train_loss).mean()
+    # print("\nAvg. Train Loss: %3f\n" % np.array(train_loss).mean())
 
 def validate(model, valid_loader, fool_class):
     pass
@@ -172,7 +173,6 @@ def main():
 
     ds, class_num = get_train_dataset("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/InsightFace_Pytorch/data/faces_emore/imgs")
 
-
     train_dataset = ds
     valid_dataset = ds
 
@@ -188,13 +188,20 @@ def main():
 
     for epoch in range(EPOCHS):
         train_loss = train([g_m, d_m, ac], optimizer, train_loader, FOOL_CLASS, criterion)
+        print("\n Avg. Train Loss: %3f\n" % np.array(train_loss))
+
         valid_loss = validate([g_m, d_m, ac], valid_loader, FOOL_CLASS)
         scheduler.step()
+
+    torch.save(g_m.state_dict(), "./generator.pth")
+    torch.save(d_m.state_dict(), "./discriminator.pth")
+
 if __name__ == "__main__":
 
+    # test on dummy data
     # dummy = cv2.imread("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/InsightFace_Pytorch/data/facebank/0/1.jpg")
     # dummy = cv2.cvtColor(dummy, cv2.COLOR_BGR2RGB)
-    # # dummy = cv2.resize(dummy, (INPUT_SIZE, INPUT_SIZE))
+    # dummy = cv2.resize(dummy, (INPUT_SIZE, INPUT_SIZE))
     # target, value = ac.infer([dummy])
 
     try:
