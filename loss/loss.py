@@ -37,7 +37,7 @@ class Gan_loss(nn.Module):
             return gen_loss.mean()
         
         # discriminator
-        return dis_loss.mean()
+        return dis_loss.mean() / 2
         # return loss.mean()
 
 class Adv_loss(nn.Module):
@@ -68,7 +68,7 @@ class Hinge_loss(nn.Module):
         return torch.max(torch.tensor([0]).cuda(), torch.norm(input) - self.c)
 
 class Combined_loss(nn.Module):
-    def __init__(self, alpha = 1, beta = 1, c = 1):
+    def __init__(self, alpha = 0.1, beta = 1, c = 25):
         super(Combined_loss, self).__init__()
         self.alpha = alpha
         self.beta = beta
@@ -92,11 +92,11 @@ class Combined_loss(nn.Module):
         a = self.adv_loss(t_pred, t_gt)
         b = self.alpha * self.gan_loss(y, yp, itr)
         c = self.beta * self.hinge_loss(Gx)
+        # print("ADV LOSS: %3f \t GAN LOSS: %3f \t HINGE LOSS: %3f" %(a.item(), b.item(), c.item()))
 
         if itr % 2 == 0:
             # generator
             return a + b + c
         return b
 
-        # print("ADV LOSS: %3f \t GAN LOSS: %3f \t HINGE LOSS: %3f" %(a.item(), b.item(), c.item()))
         # return a + b + c

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import segmentation_models_pytorch as smp
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
@@ -65,54 +66,73 @@ class Up(nn.Module):
             x = torch.cat([x, h], dim=1) # attach on channel
         return self.conv(x)
 
+# class Generative(nn.Module):
+#     def __init__(self, image_size, rgb = True):
+#         super(Generative, self).__init__()
+#         if (image_size % 8 != 0):
+#             raise Exception("Image must be a factor of 8")
+#         # in_channels, num filters, kernal_size
+#         filters1 = 32   #32
+#         filters2 = 64   #64
+#         filters3 = 128   #128
+#         # filters4 = 256   #256
+#         padding = 1 # to ensure convolutions dont change size
+#         # FIX THIS: delete n
+#         n = image_size/4 #each image is 1 feature at this point dependent on image_size
+
+#         # size x / 2
+#         if rgb:
+#             self.d1 = Down(3, filters1) # rgb channels 
+#         else:
+#             self.d1 = Down(1, filters1) # rgb channels
+
+#         # size x / 4
+#         self.d2 = Down(filters1, filters2)
+
+#         # size x / 8
+#         self.d3 = Down(filters2, filters3)
+#         # self.onedim = nn.Conv2d(filters3, filters4, 1) # 1d conv to reduce filter size
+#         bilinear = True
+#         self.u1 = Up(filters3 + filters2, filters2, bilinear=bilinear)
+#         self.u2 = Up(filters2 + filters1, filters1, bilinear=bilinear)
+#         if rgb:
+#             self.u3 = Up(filters1, 3, bilinear=bilinear) # rgb output
+#         else:
+#             self.u3 = Up(filters1, 1, bilinear=bilinear) # grayscale output
+        
+
+#     def forward(self, x):
+#         # size x / 2
+#         x1 = self.d1(x)
+#         # size x / 4
+#         x2 = self.d2(x1)
+#         # size x / 8
+#         x3 = self.d3(x2)
+
+#         # size x / 4
+#         y = self.u1(x3, x2) # upsample x3 and and concat with x2
+#         # size x / 2
+#         y = self.u2(y, x1) # upsample y and concat with x1
+#         # size x
+#         y = self.u3(y, None)
+#         return y # image should be same size as x
+
+
 class Generative(nn.Module):
     def __init__(self, image_size, rgb = True):
         super(Generative, self).__init__()
-        if (image_size % 8 != 0):
-            raise Exception("Image must be a factor of 8")
-        # in_channels, num filters, kernal_size
-        filters1 = 32   #32
-        filters2 = 64   #64
-        filters3 = 128   #128
-        # filters4 = 256   #256
-        padding = 1 # to ensure convolutions dont change size
-        # FIX THIS: delete n
-        n = image_size/4 #each image is 1 feature at this point dependent on image_size
 
-        # size x / 2
-        if rgb:
-            self.d1 = Down(3, filters1) # rgb channels 
-        else:
-            self.d1 = Down(1, filters1) # rgb channels
+        self.model = smp.Unet(
+            encoder_name="resnet34",        # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
+            encoder_weights="imagenet",     # use `imagenet` pre-trained weights for encoder initialization
+            in_channels=3,                  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
+            classes=3,                      # model output channels (number of classes in your dataset)
+            activation=None,
+            encoder_depth=3,
+            decoder_channels=(64, 32, 16)
+        )
 
-        # size x / 4
-        self.d2 = Down(filters1, filters2)
-
-        # size x / 8
-        self.d3 = Down(filters2, filters3)
-        # self.onedim = nn.Conv2d(filters3, filters4, 1) # 1d conv to reduce filter size
-        bilinear = True
-        self.u1 = Up(filters3 + filters2, filters2, bilinear=bilinear)
-        self.u2 = Up(filters2 + filters1, filters1, bilinear=bilinear)
-        if rgb:
-            self.u3 = Up(filters1, 3, bilinear=bilinear) # rgb output
-        else:
-            self.u3 = Up(filters1, 1, bilinear=bilinear) # grayscale output
-        
 
     def forward(self, x):
-        # size x / 2
-        x1 = self.d1(x)
-        # size x / 4
-        x2 = self.d2(x1)
-        # size x / 8
-        x3 = self.d3(x2)
-
-        # size x / 4
-        y = self.u1(x3, x2) # upsample x3 and and concat with x2
-        # size x / 2
-        y = self.u2(y, x1) # upsample y and concat with x1
-        # size x
-        y = self.u3(y, None)
-        return y # image should be same size as x
+        return self.model(x)
 
