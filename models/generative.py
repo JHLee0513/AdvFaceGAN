@@ -34,37 +34,37 @@ class Down(nn.Module):
     def forward(self, x):
         return self.maxpool_conv(x)
 
-class Up(nn.Module):
-    """Upscaling then double conv"""
+# class Up(nn.Module):
+#     """Upscaling then double conv"""
 
-    def __init__(self, in_channels, out_channels, bilinear=True):
-        super(Up, self).__init__()
+#     def __init__(self, in_channels, out_channels, bilinear=True):
+#         super(Up, self).__init__()
 
-        # if bilinear, use the normal convolutions to reduce the number of channels
-        if bilinear:
-            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        else:
-            self.up = nn.Upsample(scale_factor=2) # nearest neighbor instead
-        self.conv = DoubleConv(in_channels, out_channels)
+#         # if bilinear, use the normal convolutions to reduce the number of channels
+#         if bilinear:
+#             self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+#         else:
+#             self.up = nn.Upsample(scale_factor=2) # nearest neighbor instead
+#         self.conv = DoubleConv(in_channels, out_channels)
 
-    def forward(self, x, h):
-        if (len(x.shape) != 4):
-            raise Exception("Input tensor is incorrect shape")
-        # if (x.shape[2] != h.shape[2] or x.shape[3] != h.shape[3]):
-        #     raise Exception("shapes do not match for x and h!!!")
+#     def forward(self, x, h):
+#         if (len(x.shape) != 4):
+#             raise Exception("Input tensor is incorrect shape")
+#         # if (x.shape[2] != h.shape[2] or x.shape[3] != h.shape[3]):
+#         #     raise Exception("shapes do not match for x and h!!!")
 
-        x = self.up(x)
-        # input is CHW
-        # diffY = x2.size()[2] - x1.size()[2]
-        # diffX = x2.size()[3] - x1.size()[3]
-        # x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
-                        # diffY // 2, diffY - diffY // 2])
-        # if you have padding issues, see
-        # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
-        # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
-        if h is not None:
-            x = torch.cat([x, h], dim=1) # attach on channel
-        return self.conv(x)
+#         x = self.up(x)
+#         # input is CHW
+#         # diffY = x2.size()[2] - x1.size()[2]
+#         # diffX = x2.size()[3] - x1.size()[3]
+#         # x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
+#                         # diffY // 2, diffY - diffY // 2])
+#         # if you have padding issues, see
+#         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
+#         # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
+#         if h is not None:
+#             x = torch.cat([x, h], dim=1) # attach on channel
+#         return self.conv(x)
 
 # class Generative(nn.Module):
 #     def __init__(self, image_size, rgb = True):

@@ -17,7 +17,8 @@ class Gan_loss(nn.Module):
     """
     def __init__(self):
         super(Gan_loss, self).__init__()
-        self.l = nn.BCEWithLogitsLoss(reduction = 'mean')
+        # self.l = nn.BCEWithLogitsLoss(reduction = 'mean')
+        self.l = nn.MSELoss(reduction = 'mean')
 
     def forward(self, input_real, input_fake, itr):
         assert (input_real.shape == input_fake.shape)
@@ -26,9 +27,11 @@ class Gan_loss(nn.Module):
         pos = torch.ones([bs, 1]).to(device)
         neg = torch.zeros([bs, 1]).to(device)
 
-        dis_loss = self.l(input_real, pos) + self.l(input_fake, neg)
+        # dis_loss = self.l(input_real, pos) + self.l(input_fake, neg)
+        dis_loss = self.l(input_real, torch.ones_like(input_real, device=device))
+        dis_loss = dis_loss + self.l(input_fake, torch.zeros_like(input_real, device=device))
         # dis_loss = torch.log(torch.sigmoid(input_real))
-        gen_loss = self.l(input_fake, pos)
+        gen_loss = self.l(input_fake, torch.ones_like(input_fake, device=device))
         # print("DIS LOSS: %3f \t GEN LOSS: %3f" % (dis_loss.mean().item(), gen_loss.mean().item()))
         # loss = dis_loss + gen_loss
         # loss = loss.mean()
@@ -54,7 +57,10 @@ class Adv_loss(nn.Module):
         target: target class (N)
         """
         # return F.cross_entropy(input, target, reduction = "mean")
-        return self.l(torch.log(input + 1e-10), target)
+        # return self.l(torch.log(input + 1e-10), target)
+        # print(input[0], target[0])
+        # return F.mse_loss(input, target, reduction = 'sum')
+        return F.mse_loss(input, target, reduction = 'sum')
 
 class Hinge_loss(nn.Module):
     def __init__(self, c):
@@ -68,7 +74,7 @@ class Hinge_loss(nn.Module):
         return torch.max(torch.tensor([0]).cuda(), torch.norm(input) - self.c)
 
 class Combined_loss(nn.Module):
-    def __init__(self, alpha = 0.1, beta = 1, c = 25):
+    def __init__(self, alpha = 0.1, beta = 1, c = 200):
         super(Combined_loss, self).__init__()
         self.alpha = alpha
         self.beta = beta
@@ -91,12 +97,13 @@ class Combined_loss(nn.Module):
 
         a = self.adv_loss(t_pred, t_gt)
         b = self.alpha * self.gan_loss(y, yp, itr)
-        c = self.beta * self.hinge_loss(Gx)
+        # c = self.beta * self.hinge_loss(Gx)
         # print("ADV LOSS: %3f \t GAN LOSS: %3f \t HINGE LOSS: %3f" %(a.item(), b.item(), c.item()))
+        # print("ADV LOSS: %3f \t GAN LOSS: %3f \t HINGE LOSS: %3f" %(a.item(), b.item(), 0))
 
         if itr % 2 == 0:
             # generator
-            return a + b + c
+            return a + b #+ c
         return b
 
         # return a + b + c
