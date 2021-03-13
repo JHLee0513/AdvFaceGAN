@@ -46,15 +46,15 @@ class Adv_loss(nn.Module):
     """
     def __init__(self):
         super(Adv_loss, self).__init__()
-        self.l = nn.NLLLoss(reduction = 'mean')
+        # self.l = nn.CrossEntropyLoss(reduction = 'mean')
 
     def forward(self, input, target):
         """
         input: model prediction OHE (N, C)
         target: target class (N)
         """
-        # return F.cross_entropy(input, target, reduction = "mean")
-        return self.l(torch.log(input + 1e-10), target)
+        return F.cross_entropy(input, target, reduction = "mean")
+        # return self.l(torch.log(input + 1e-10), target)
 
 class Hinge_loss(nn.Module):
     def __init__(self, c):
