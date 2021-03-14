@@ -65,7 +65,7 @@ class Hinge_loss(nn.Module):
         """
         input: image NCHW
         """
-        return torch.max(torch.tensor([0]).cuda(), torch.norm(input) - self.c)
+        return torch.max(torch.tensor([0]).to(device), torch.norm(input) - self.c)
 
 class Combined_loss(nn.Module):
     def __init__(self, alpha = 0.1, beta = 1, c = 25):
