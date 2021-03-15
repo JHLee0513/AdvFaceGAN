@@ -16,16 +16,19 @@ from models.discriminative import Discriminative
 from models.digits import DigitModel
 
 from loss.loss import Combined_loss
-from data.dataloader import get_datasets, get_lfw_datasets
+from data.dataloader import get_datasets, LFWDataset
+import cv2
 import numpy as np
 import tabulate
+from sklearn.model_selection import train_test_split
+from pathlib import Path
 
 """
 Training script for AdvFaceGAN
 """
 
-EPOCHS = 2000
-BATCHSIZE = 8
+EPOCHS = 1000
+BATCHSIZE = 2
 INPUT_SIZE = 28
 TARGET = 4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -59,8 +62,6 @@ def train(models, optimizer_g, optimizer_d, train_loader, fool_class, criterion)
             generator.train()
             discriminator.eval()
         else:
-            # train discriminator
-            generator.eval()
             discriminator.train()
         digits.eval()
 
@@ -124,26 +125,43 @@ def validate(models, valid_loader, fool_class, criterion):
 
     return np.array(valid_loss).mean(), np.array(valid_acc).mean()
 
+def get_lfw_datasets(img_path):
+
+    faces = []
+
+    for path in Path(img_path).rglob('*.jpg'):
+        faces.append(path)
+
+    faces = faces[:4]
+
+    # print(faces)
+
+    train, valid = train_test_split(faces, test_size = 0.5, random_state = 42)
+
+    # print(train, valid)
+
+    train_set = LFWDataset(train, type = 'train')
+    valid_set = LFWDataset(valid, type = 'valid')
+
+    return train_set, valid_set
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     g_m = Generative(INPUT_SIZE, rgb = False).to(device)
-
-    g_m.load_state_dict(torch.load("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/train/generator.pth"))
-
     d_m = Discriminative(INPUT_SIZE, rgb = False).to(device)
     digits = DigitModel().to(device)
-    digits.load_state_dict(torch.load("../weights/digits/digits_best.pth", map_location=device))
+    digits.load_state_dict(torch.load("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/train/digits/digits_best.pth"))
     digits.eval()
 
     # mnist
     # train_set, val_set = get_datasets("../data/train.csv")
     # LFW
-    train_set, val_set = get_lfw_datasets("../data/lfw-deepfunneled")
-
+    
+    train_set, val_set = get_lfw_datasets("../data/lfw/lfw-deepfunneled/lfw-deepfunneled")
 
     train_loader = DataLoader(train_set, batch_size=BATCHSIZE, shuffle=True, num_workers=6, drop_last = True)
-    valid_loader = DataLoader(val_set, batch_size=BATCHSIZE, shuffle=False, num_workers=6, drop_last = True)
+    valid_loader = DataLoader(train_set, batch_size=BATCHSIZE, shuffle=False, num_workers=6, drop_last = True)
 
     criterion = Combined_loss()
 
@@ -164,9 +182,9 @@ def main():
         train_loss, train_acc = train([g_m, d_m, digits], optimizer_g, optimizer_d, train_loader, TARGET, criterion)
 
         if epoch == 0:
-            f = open("./train_log.txt", 'w')
+            f = open("./train_log_2.txt", 'w')
         else:
-            f = open("./train_log.txt", 'a')
+            f = open("./train_log_2.txt", 'a')
 
         f.write("Avg. Train Loss: %3f\n" % np.array(train_loss).mean())
         f.write("Avg. Train Acc: %3f\n" % np.array(train_acc).mean())
@@ -178,8 +196,8 @@ def main():
         
         if (valid_acc > best_valid):
             f.write("New best!\n")
-            torch.save(g_m.state_dict(), "./generator.pth")
-            torch.save(d_m.state_dict(), "./discriminator.pth")
+            torch.save(g_m.state_dict(), "./generator_2.pth")
+            torch.save(d_m.state_dict(), "./discriminator_2.pth")
             best_valid = valid_acc
 
         f.close()
