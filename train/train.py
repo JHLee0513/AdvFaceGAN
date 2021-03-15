@@ -17,7 +17,6 @@ from models.digits import DigitModel
 
 from loss.loss import Combined_loss
 from data.dataloader import get_datasets, get_lfw_datasets
-import cv2
 import numpy as np
 import tabulate
 
@@ -134,13 +133,13 @@ def main():
 
     d_m = Discriminative(INPUT_SIZE, rgb = False).to(device)
     digits = DigitModel().to(device)
-    digits.load_state_dict(torch.load("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/train/digits/digits_best.pth"))
+    digits.load_state_dict(torch.load("../weights/digits/digits_best.pth", map_location=device))
     digits.eval()
 
     # mnist
     # train_set, val_set = get_datasets("../data/train.csv")
     # LFW
-    train_set, val_set = get_lfw_datasets("../data/lfw/lfw-deepfunneled/lfw-deepfunneled")
+    train_set, val_set = get_lfw_datasets("../data/lfw-deepfunneled")
 
 
     train_loader = DataLoader(train_set, batch_size=BATCHSIZE, shuffle=True, num_workers=6, drop_last = True)
