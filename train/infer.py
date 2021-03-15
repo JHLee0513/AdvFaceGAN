@@ -47,18 +47,16 @@ if __name__ == "__main__":
     ]
     PATH = "../facebank/"
 
-    add_paths(samples, PATH + "banana/")
     add_paths(samples, PATH + "brad_pitt/")
+    add_paths(samples, PATH + "banana/")
     add_paths(samples, PATH + "sunflower/")
-    print(samples)
-    # exit(1)
     
     for name in samples:
-
+        GENERATOR_PATH = "../weights2/generator_2.pth" # change to path of prefered generator
         dummy = Image.open(name)
         gen = Generative(INPUT_SIZE, rgb = False).to(device)
         # map_location for sad cpu gang
-        gen.load_state_dict(torch.load("../weights/lfw/generator.pth", map_location=device))
+        gen.load_state_dict(torch.load(GENERATOR_PATH, map_location=device))
         
         test_transform = trans.Compose([
                 transforms.Grayscale(),
@@ -72,13 +70,8 @@ if __name__ == "__main__":
         print(orig.max())
         gx = gen(dummy_ten)
         adv = gx + dummy_ten
-        # print(gx.max())
-        # gx.reshape + orig.reshape
-        plt.imshow(orig.detach().reshape(28, 28), cmap='gray')
-        plt.show()
-        plt.imshow(gx.detach().reshape(28, 28), cmap='gray')
-        plt.show()
-        plt.imshow(adv.detach().reshape(28, 28), cmap='gray')
+        plotimg = torch.cat((orig.detach().reshape(28, 28), gx.detach().reshape(28, 28), adv.detach().reshape(28, 28)), 1) 
+        plt.imshow(plotimg.detach(), cmap='gray')
         plt.show()
 
         ac = DigitModel().to(device)
