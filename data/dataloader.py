@@ -6,6 +6,9 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 
+# Please note the sources of data used here are:
+# MNIST: https://www.kaggle.com/c/digit-recognizer
+# LFW: https://www.kaggle.com/jessicali9530/lfw-dataset
 
 def get_datasets(train_csv_path, test_csv_path = None):
     train = pd.read_csv(train_csv_path)

@@ -32,7 +32,7 @@ TARGET = 4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 TARGET = [TARGET] * BATCHSIZE
 TARGET = torch.tensor(TARGET).long().to(device)
-CLAMP = 0.1
+CLAMP = 0.4
 
 def train(models, optimizer_g, optimizer_d, train_loader, fool_class, criterion):
     """
@@ -130,7 +130,7 @@ def main():
 
     g_m = Generative(INPUT_SIZE, rgb = False).to(device)
 
-    g_m.load_state_dict(torch.load("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/train/generator.pth"))
+    # g_m.load_state_dict(torch.load("/media/joonho1804/Storage/455FINALPROJECT/AdvFaceGAN/train/generator.pth"))
 
     d_m = Discriminative(INPUT_SIZE, rgb = False).to(device)
     digits = DigitModel().to(device)
@@ -165,9 +165,9 @@ def main():
         train_loss, train_acc = train([g_m, d_m, digits], optimizer_g, optimizer_d, train_loader, TARGET, criterion)
 
         if epoch == 0:
-            f = open("./train_log.txt", 'w')
+            f = open("./train_log_hinge_3.txt", 'w')
         else:
-            f = open("./train_log.txt", 'a')
+            f = open("./train_log_hinge_3.txt", 'a')
 
         f.write("Avg. Train Loss: %3f\n" % np.array(train_loss).mean())
         f.write("Avg. Train Acc: %3f\n" % np.array(train_acc).mean())
@@ -179,8 +179,8 @@ def main():
         
         if (valid_acc > best_valid):
             f.write("New best!\n")
-            torch.save(g_m.state_dict(), "./generator.pth")
-            torch.save(d_m.state_dict(), "./discriminator.pth")
+            torch.save(g_m.state_dict(), "./generator_hinge_3.pth")
+            torch.save(d_m.state_dict(), "./discriminator_hinge_3.pth")
             best_valid = valid_acc
 
         f.close()
