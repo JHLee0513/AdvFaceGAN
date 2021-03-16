@@ -30,7 +30,7 @@ python infer.py
 
 
 
-![Images](adv.png)
+![Result Images](adv.png?raw=true)
 The top row is images from ImageNet
 
 The bottom row is images from LFW
