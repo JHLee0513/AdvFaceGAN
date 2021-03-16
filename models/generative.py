@@ -19,7 +19,6 @@ class DoubleConv(nn.Module):
     def forward(self, x):
         return self.double_conv(x)
 
-# changed to double conv then maxpool
 class Down(nn.Module):
     """Downscaling with maxpool then double conv"""
 
@@ -49,18 +48,8 @@ class Up(nn.Module):
     def forward(self, x, h):
         if (len(x.shape) != 4):
             raise Exception("Input tensor is incorrect shape")
-        # if (x.shape[2] != h.shape[2] or x.shape[3] != h.shape[3]):
-        #     raise Exception("shapes do not match for x and h!!!")
 
         x = self.up(x)
-        # input is CHW
-        # diffY = x2.size()[2] - x1.size()[2]
-        # diffX = x2.size()[3] - x1.size()[3]
-        # x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
-                        # diffY // 2, diffY - diffY // 2])
-        # if you have padding issues, see
-        # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
-        # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
         if h is not None:
             x = torch.cat([x, h], dim=1) # attach on channel
         return self.conv(x)
@@ -70,14 +59,9 @@ class Generative(nn.Module):
         super(Generative, self).__init__()
         if (image_size % 4 != 0):
             raise Exception("Image must be a factor of 8")
-        # in_channels, num filters, kernal_size
-        filters1 = 32   #32
-        filters2 = 64   #64
-        # filters3 = 128   #128
-        # filters4 = 256   #256
+        filters1 = 32
+        filters2 = 64 
         padding = 1 # to ensure convolutions dont change size
-        # FIX THIS: delete n
-        n = image_size/4 #each image is 1 feature at this point dependent on image_size
 
         # size x / 2
         if rgb:
@@ -88,16 +72,17 @@ class Generative(nn.Module):
         # size x / 4
         self.d2 = Down(filters1, filters2)
 
-        # size x / 8
-        # self.d3 = Down(filters2, filters3)
-        # self.onedim = nn.Conv2d(filters3, filters4, 1) # 1d conv to reduce filter size
         bilinear = True
-        # self.u1 = Up(filters3 + filters2, filters2, bilinear=bilinear)
         self.u2 = Up(filters2 + filters1, filters1, bilinear=bilinear)
         if rgb:
-            self.u3 = Up(filters1, 3, bilinear=bilinear) # rgb output
+            self.u3 = Up(filters1, filters2, bilinear=bilinear) # rgb output
         else:
-            self.u3 = Up(filters1, 1, bilinear=bilinear) # grayscale output
+            self.u3 = Up(filters1, filters2, bilinear=bilinear) # rgb output
+        if rgb:
+            self.last = nn.Conv2d(filters2, 3, kernel_size=3, padding=1)
+        else:
+            self.last = nn.Conv2d(filters2, 1, kernel_size=3, padding=1)
+
         
 
     def forward(self, x):
@@ -105,33 +90,10 @@ class Generative(nn.Module):
         x1 = self.d1(x)
         # size x / 4
         x2 = self.d2(x1)
-        # size x / 8
-        # x3 = self.d3(x2)
 
-        # size x / 4
-        # y = self.u1(x3, x2) # upsample x3 and and concat with x2
         # size x / 2
         y = self.u2(x2, x1) # upsample y and concat with x1
         # size x
         y = self.u3(y, None)
+        y = self.last(y)
         return y # image should be same size as x
-
-
-# class Generative(nn.Module):
-#     def __init__(self, image_size, rgb = True):
-#         super(Generative, self).__init__()
-
-#         self.model = smp.Unet(
-#             encoder_name="resnet34",        # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
-#             encoder_weights="imagenet",     # use `imagenet` pre-trained weights for encoder initialization
-#             in_channels=3,                  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
-#             classes=3,                      # model output channels (number of classes in your dataset)
-#             activation=None,
-#             encoder_depth=3,
-#             decoder_channels=(64, 32, 16)
-#         )
-
-
-#     def forward(self, x):
-#         return self.model(x)
-

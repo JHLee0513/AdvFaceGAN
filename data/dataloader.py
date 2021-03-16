@@ -80,11 +80,48 @@ def get_lfw_datasets(img_path):
         faces.append(path)
 
     train, valid = train_test_split(faces, test_size = 0.2, random_state = 42)
-
+    f = open("../data/validset", "w") # save validation set
+    for item in valid:
+        f.write(str(item))
+        f.write(",")
+    f.close()
     train_set = LFWDataset(train, type = 'train')
     valid_set = LFWDataset(valid, type = 'valid')
 
     return train_set, valid_set
+
+def get_lfw_datasets_test(file_path):
+
+    f = open("../data/validset", "r")
+    test = f.read().split(',')
+    test.pop() 
+    f.close()
+    test_set = LFWDataset(test, type = 'valid')
+
+    return test_set
+
+
+def get_random_image_dataset(images):
+    train_set = ImageDataset(images)
+    return train_set
+
+class ImageDataset(Dataset):
+    def __init__(self, images):
+        self.images = images
+        self.transforms = transforms.Compose([
+                # transforms.ToPILImage(),
+                transforms.Grayscale(),
+                transforms.Resize((28, 28)),
+                transforms.ToTensor() #,
+                # transforms.Normalize((0.5,), (0.5,))
+        ])
+        
+    def __getitem__(self, i):
+        img = Image.open(self.images[i])
+        return self.transforms(img)
+    
+    def __len__(self):
+        return len(self.images)
 
 class LFWDataset(Dataset):
     def __init__(self, faces, type = 'train'):
@@ -97,32 +134,82 @@ class LFWDataset(Dataset):
 
         if (type == 'train'):
             self.transforms = transforms.Compose([
-                # transforms.ToPILImage(),
                 transforms.Grayscale(),
                 transforms.Resize((28, 28)),
                 transforms.RandomHorizontalFlip(p=0.25),
                 transforms.RandomVerticalFlip(p=0.25),
-                # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-                # transforms.RandomAffine(20, translate=[0.05, 0.25], scale=[0.1, 0.2]),
                 transforms.ToTensor() #,
-                # transforms.Normalize((0.5,), (0.5,))
             ])
         else: # valid or test
             self.transforms = transforms.Compose([
-                # transforms.ToPILImage(),
                 transforms.Grayscale(),
                 transforms.Resize((28, 28)),
                 transforms.ToTensor() #,
-                # transforms.Normalize((0.5,), (0.5,))
             ])
     
     def __getitem__(self, idx):
 
         im = Image.open(self.faces[idx])
-        # im = im.resize((28,28))
         im = self.transforms(im)
 
-        return im, -1
+        return im
 
     def __len__(self):
         return len(self.faces)
+
+def get_image_net_datasets(train_path):
+
+    images = []
+
+    for path in Path(train_path).rglob('*.JPEG'):
+        images.append(path)
+
+    train, valid = train_test_split(images, test_size = 0.2, random_state = 42)
+
+    train_set = LFWDataset(train, type = 'train')
+    valid_set = LFWDataset(valid, type = 'valid')
+
+    return train_set, valid_set, test_set
+
+def get_image_net_test(test_path):
+    test = []
+
+    for path in Path(test_path).rglob('*.JPEG'):
+        test.append(path)
+    test_set = LFWDataset(test, type = 'valid')
+
+    return test_set
+    
+class ImageNetDataset(Dataset):
+    def __init__(self, images, type = 'train'):
+        """
+        faces = list of path to photos
+        """
+
+        self.images = images
+        self.type = type
+
+        if (type == 'train'):
+            self.transforms = transforms.Compose([
+                transforms.Grayscale(),
+                transforms.Resize((28, 28)),
+                transforms.RandomHorizontalFlip(p=0.25),
+                transforms.RandomVerticalFlip(p=0.25),
+                transforms.ToTensor()
+            ])
+        else: # valid or test
+            self.transforms = transforms.Compose([
+                transforms.Grayscale(),
+                transforms.Resize((28, 28)),
+                transforms.ToTensor()
+            ])
+    
+    def __getitem__(self, idx):
+
+        im = Image.open(self.images[idx])
+        im = self.transforms(im)
+
+        return im
+
+    def __len__(self):
+        return len(self.images)

@@ -6,25 +6,24 @@ CSE455 Final Project
 We present AdvFaceGAN, a GAN-driven adversarial framework that
 takes partial black-box facial recognition and learns to generate
 
-You can also checkout our website, as well a report (idk if we have to write one?)
+You can also checkout our website, as well a report
 
 # Setup
 
-## Installation
+1. download LFW or ImageNet
 
-## Data pereration
+1. Configure proper paths in train/train.py and train/infer.py
 
-# Demo!
+1. Train and test
 
-# Traininig
-
-# Testing
-
-# Additional things
+```sh
+pip install -r requirements.txt
+cd train
+python train.py
+python infer.py
+```
 
 
 # Bibiolography
 
-Our work is greatly inspired by a recent, similar work AdvGAN(href...)
-
-Additional references as follows:
+Our work is greatly inspired by a recent, similar work AdvGA
