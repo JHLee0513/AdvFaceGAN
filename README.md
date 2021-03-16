@@ -1,4 +1,4 @@
-# AdvFaceGAN
+# AdvFaceGAN/DigiFace
 CSE455 Final Project
 
 ## Abstract
