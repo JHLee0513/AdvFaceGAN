@@ -26,4 +26,4 @@ python infer.py
 
 # Bibiolography
 
-Our work is greatly inspired by a recent, similar work AdvGA
+Our work is greatly inspired by a recent, similar work AdvGAN
